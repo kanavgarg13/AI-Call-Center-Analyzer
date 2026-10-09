@@ -10,16 +10,19 @@ from transcription import transcribe_audio
 from analysis import analyze_transcript
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://ai-call-center-analyzer.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 ALLOWED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".ogg"}
 UPLOADS_DIR = Path(__file__).resolve().parent / "uploads"
 
