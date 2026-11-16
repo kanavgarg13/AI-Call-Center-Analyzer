@@ -503,6 +503,119 @@ h3 {
 
 
 /* ========================================
+   Call Outcome & Escalation
+======================================== */
+
+.outcome-card {
+  background: #ffffff;
+  border: 1px solid #e9eaf1;
+  border-radius: 15px;
+  padding: 25px;
+  margin-top: 16px;
+}
+
+.outcome-card .section-heading {
+  margin-bottom: 22px;
+}
+
+.outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.outcome-item {
+  min-width: 0;
+  padding: 20px;
+  background: #f8f9fc;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
+}
+
+.outcome-item .eyebrow {
+  font-size: 9px;
+}
+
+.outcome-status,
+.escalation-status {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.outcome-status.resolved,
+.escalation-status.not-required {
+  color: #168760;
+  background: #e7f8ef;
+}
+
+.outcome-status.partially-resolved {
+  color: #a16207;
+  background: #fff4d9;
+}
+
+.outcome-status.unresolved,
+.escalation-status.required {
+  color: #c34444;
+  background: #fff0f0;
+}
+
+.outcome-status.unknown {
+  color: #64748b;
+  background: #edf0f5;
+}
+
+.outcome-item p {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.unresolved-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: #fffaf1;
+  border: 1px solid #f4ead5;
+  border-radius: 12px;
+}
+
+.unresolved-section h4 {
+  margin: 0 0 12px;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a611d;
+}
+
+.unresolved-section ul {
+  padding-left: 18px;
+  margin: 0;
+  color: #535970;
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.unresolved-section li {
+  padding-left: 3px;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.unresolved-section > p {
+  margin: 0;
+  color: #777c91;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+
+/* ========================================
    Agent Performance Evaluation
 ======================================== */
 
@@ -933,6 +1046,24 @@ footer {
 
   .conversation-meta {
     gap: 5px;
+  }
+
+  /* Call outcome section on mobile */
+
+  .outcome-card {
+    padding: 17px;
+  }
+
+  .outcome-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .outcome-item {
+    padding: 16px;
+  }
+
+  .unresolved-section {
+    padding: 16px;
   }
 
   /* Performance section on mobile */

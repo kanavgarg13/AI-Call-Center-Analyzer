@@ -368,6 +368,89 @@ function App() {
             </div>
 
 
+            {/* Call Outcome & Escalation */}
+            <article className="outcome-card">
+
+              <div className="section-heading">
+
+                <div className="heading-icon">
+                  <ClipboardCheck size={20} />
+                </div>
+
+                <div>
+                  <h3>Call Outcome & Escalation</h3>
+                  <p>Resolution status and escalation assessment</p>
+                </div>
+
+              </div>
+
+
+              <div className="outcome-grid">
+
+                {/* Call Outcome */}
+                <div className="outcome-item">
+
+                  <div className="eyebrow">CALL OUTCOME</div>
+
+                  <span
+                    className={`outcome-status ${
+                      (analysis.call_outcome || "Unknown")
+                        .toLowerCase()
+                        .replaceAll(" ", "-")
+                    }`}
+                  >
+                    {analysis.call_outcome || "Unknown"}
+                  </span>
+
+                </div>
+
+
+                {/* Escalation Status */}
+                <div className="outcome-item">
+
+                  <div className="eyebrow">ESCALATION STATUS</div>
+
+                  <span
+                    className={`escalation-status ${
+                      analysis.escalation?.required
+                        ? "required"
+                        : "not-required"
+                    }`}
+                  >
+                    {analysis.escalation?.required
+                      ? "Escalation Required"
+                      : "No Escalation Required"}
+                  </span>
+
+                  {analysis.escalation?.reason && (
+                    <p>{analysis.escalation.reason}</p>
+                  )}
+
+                </div>
+
+              </div>
+
+
+              {/* Unresolved Issues */}
+              <div className="unresolved-section">
+
+                <h4>Unresolved Issues</h4>
+
+                {analysis.unresolved_issues?.length > 0 ? (
+                  <ul>
+                    {analysis.unresolved_issues.map((issue, index) => (
+                      <li key={index}>{issue}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No unresolved issues identified.</p>
+                )}
+
+              </div>
+
+            </article>
+
+
             {/* Agent Performance Evaluation */}
             {performance && (
 
@@ -645,7 +728,9 @@ function App() {
 
               )}
 
+
             </article>
+
 
           </section>
 
@@ -656,6 +741,7 @@ function App() {
         <footer>
           CallSense AI · AI-assisted call quality analysis
         </footer>
+
 
       </main>
 

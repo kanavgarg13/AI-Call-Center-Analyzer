@@ -42,7 +42,21 @@ Return ONLY a valid JSON object with these fields:
 5. speaker_roles: A dictionary mapping every speaker ID to
    Agent, Customer, or Unknown.
 
-6. agent_performance: An object containing:
+6. call_outcome: One of:
+   - Resolved
+   - Partially Resolved
+   - Unresolved
+   - Unknown
+
+7. unresolved_issues: A list of customer problems or requests
+   that remain unresolved at the end of the conversation.
+
+8. escalation: An object containing:
+   - required: A boolean indicating whether escalation is needed.
+   - reason: A concise explanation, or null if escalation
+     is not required.
+
+9. agent_performance: An object containing:
 
    - overall_score: Integer from 0 to 100, or null.
    - criteria: An object containing these five criteria:
@@ -93,9 +107,38 @@ Speaker identification rules:
 4. Assign Unknown when the role cannot be determined confidently.
 5. Include every speaker ID present in the transcript.
 
+Call outcome rules:
+
+1. Resolved: The customer's main issue was successfully addressed.
+2. Partially Resolved: Some parts were addressed, but others remain.
+3. Unresolved: The main issue was not addressed or remains unresolved.
+4. Unknown: The conversation ends before the outcome can be determined.
+5. Base the outcome only on evidence in the conversation.
+6. Do not assume that an issue was resolved just because the
+   agent says they will look into it or take further action.
+
+Unresolved issue rules:
+
+1. Include only customer issues or requests that remain unresolved.
+2. Return an empty list if no unresolved issues remain.
+3. Do not invent unresolved problems.
+4. If the outcome is Unknown, include only issues that are
+   clearly still unresolved based on the available evidence.
+
+Escalation rules:
+
+1. Set required to true when the conversation clearly indicates
+   that escalation is necessary.
+2. Examples include an explicit request for a supervisor or
+   an issue requiring another support level.
+3. Do not recommend escalation without supporting evidence.
+4. If escalation is not required, set reason to null.
+5. Do not treat every unresolved issue as automatically requiring
+   escalation.
+
 Use only information supported by the transcript.
 Do not invent events or claim that an issue was resolved
-unless explicitly stated.
+unless explicitly supported by the conversation.
 
 Transcript:
 {transcript}
@@ -119,6 +162,9 @@ Transcript:
             "customer_intent",
             "key_issues",
             "speaker_roles",
+            "call_outcome",
+            "unresolved_issues",
+            "escalation",
             "agent_performance"
         }
 
@@ -145,6 +191,37 @@ Transcript:
             for role in result["speaker_roles"].values()
         ):
             raise ValueError("Gemini returned an invalid speaker role")
+
+        # Validate call outcome
+        allowed_outcomes = {
+            "Resolved",
+            "Partially Resolved",
+            "Unresolved",
+            "Unknown"
+        }
+
+        if result["call_outcome"] not in allowed_outcomes:
+            raise ValueError("Invalid call outcome")
+
+        # Validate unresolved issues
+        if not isinstance(result["unresolved_issues"], list):
+            raise ValueError("unresolved_issues must be a list")
+
+        # Validate escalation
+        escalation = result["escalation"]
+
+        if not isinstance(escalation, dict):
+            raise ValueError("escalation must be an object")
+
+        if not isinstance(escalation.get("required"), bool):
+            raise ValueError("escalation.required must be a boolean")
+
+        if escalation["required"]:
+            if not isinstance(escalation.get("reason"), str):
+                raise ValueError("Escalation reason must be a string")
+        else:
+            if escalation.get("reason") is not None:
+                raise ValueError("Escalation reason must be null")
 
         # Validate agent performance
         performance = result["agent_performance"]

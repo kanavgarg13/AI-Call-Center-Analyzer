@@ -1,3 +1,4 @@
+
 from faster_whisper import WhisperModel
 
 
@@ -8,18 +9,19 @@ def transcribe_audio_segments(audio_path: str) -> list[dict]:
         segments, _info = model.transcribe(audio_path)
 
         transcript_segments = []
+
         for segment in segments:
             text = segment.text.strip()
+
             if text:
-                transcript_segments.append(
-                    {
-                        "start": segment.start,
-                        "end": segment.end,
-                        "text": text,
-                    }
-                )
+                transcript_segments.append({
+                    "start": segment.start,
+                    "end": segment.end,
+                    "text": text,
+                })
 
         return transcript_segments
+
     except Exception as error:
         raise RuntimeError(
             f"Failed to transcribe audio at '{audio_path}': {error}"
