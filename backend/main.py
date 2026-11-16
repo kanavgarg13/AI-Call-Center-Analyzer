@@ -65,7 +65,9 @@ def analyze_audio(file: UploadFile = File(...)):
         try:
             conversation = process_conversation(str(temp_path))
         except Exception:
-            logger.exception("Conversation processing failed for '%s'", filename)
+            logger.exception(
+                "Conversation processing failed for '%s'", filename
+            )
             raise HTTPException(
                 status_code=500,
                 detail="Conversation processing failed. Please try again with a valid audio file.",
@@ -86,10 +88,21 @@ def analyze_audio(file: UploadFile = File(...)):
         try:
             analysis = analyze_transcript(transcript)
         except Exception:
-            logger.exception("Call analysis failed for '%s'", filename)
+            logger.exception(
+                "Call analysis failed for '%s'", filename
+            )
             raise HTTPException(
                 status_code=502,
                 detail="Call analysis failed. Please try again later.",
+            )
+
+        # Map each speaker ID to its role identified by Gemini.
+        speaker_roles = analysis.get("speaker_roles", {})
+
+        for segment in conversation:
+            segment["speaker_role"] = speaker_roles.get(
+                segment["speaker"],
+                "Unknown"
             )
 
         return {

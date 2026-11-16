@@ -11,21 +11,27 @@ import {
   MessageSquareText,
   Target,
   ListChecks,
+  UserRound,
+  Headset,
 } from "lucide-react";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function formatTimestamp(seconds) {
   const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
   const minutes = Math.floor(totalSeconds / 60);
   const remainingSeconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+
+  return `${String(minutes).padStart(2, "0")}:${String(
+    remainingSeconds
+  ).padStart(2, "0")}`;
 }
 
-function speakerAlignment(speaker) {
-  if (speaker === "SPEAKER_00") return "left";
-  if (speaker === "SPEAKER_01") return "right";
+function speakerAlignment(role) {
+  if (role === "Agent") return "left";
+  if (role === "Customer") return "right";
   return "neutral";
 }
 
@@ -37,6 +43,7 @@ function App() {
 
   async function analyzeCall(event) {
     event.preventDefault();
+
     if (!file) {
       setError("Please select an audio file first.");
       return;
@@ -54,8 +61,13 @@ function App() {
         method: "POST",
         body: formData,
       });
+
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Analysis failed.");
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Analysis failed.");
+      }
+
       setResult(data);
     } catch (err) {
       setError(err.message || "Could not connect to the backend.");
@@ -65,120 +77,266 @@ function App() {
   }
 
   const analysis = result?.analysis;
-  const conversation = Array.isArray(result?.conversation) ? result.conversation : [];
+  const conversation = Array.isArray(result?.conversation)
+    ? result.conversation
+    : [];
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-icon"><Headphones size={23} /></div>
-          <div><h2>CallSense AI</h2><span>QUALITY INTELLIGENCE</span></div>
+          <div className="brand-icon">
+            <Headphones size={23} />
+          </div>
+          <div>
+            <h2>CallSense AI</h2>
+            <span>QUALITY INTELLIGENCE</span>
+          </div>
         </div>
+
         <div className="nav-label">WORKSPACE</div>
-        <div className="nav-item active"><Activity size={18} />Call analysis</div>
-        <div className="sidebar-bottom"><div className="status-dot" /><span>AI analysis workspace</span></div>
+
+        <div className="nav-item active">
+          <Activity size={18} />
+          Call analysis
+        </div>
+
+        <div className="sidebar-bottom">
+          <div className="status-dot" />
+          <span>AI analysis workspace</span>
+        </div>
       </aside>
 
       <main className="main-content">
         <header className="topbar">
-          <div><div className="eyebrow">CALL CENTER INTELLIGENCE</div><h1>Call Analysis</h1></div>
-          <div className="live-status"><span className="status-dot" />Backend integration</div>
+          <div>
+            <div className="eyebrow">CALL CENTER INTELLIGENCE</div>
+            <h1>Call Analysis</h1>
+          </div>
+
+          <div className="live-status">
+            <span className="status-dot" />
+            Backend integration
+          </div>
         </header>
 
         <section className="welcome">
           <div>
-            <span className="eyebrow light">AI-POWERED QUALITY REVIEW</span>
+            <span className="eyebrow light">
+              AI-POWERED QUALITY REVIEW
+            </span>
             <h2>Understand every customer conversation.</h2>
-            <p>Upload a call recording to generate a transcript and AI-powered insights.</p>
+            <p>
+              Upload a call recording to generate a transcript and
+              AI-powered insights.
+            </p>
           </div>
-          <div className="welcome-icon"><Headphones size={48} /></div>
+
+          <div className="welcome-icon">
+            <Headphones size={48} />
+          </div>
         </section>
 
         <section className="upload-card">
           <div className="section-heading">
-            <div className="heading-icon"><Upload size={19} /></div>
-            <div><h3>Analyze a call</h3><p>Supported formats: WAV, MP3, M4A and OGG</p></div>
+            <div className="heading-icon">
+              <Upload size={19} />
+            </div>
+            <div>
+              <h3>Analyze a call</h3>
+              <p>Supported formats: WAV, MP3, M4A and OGG</p>
+            </div>
           </div>
+
           <form onSubmit={analyzeCall}>
             <label className="drop-zone">
-              <input type="file" accept=".wav,.mp3,.m4a,.ogg,audio/*"
+              <input
+                type="file"
+                accept=".wav,.mp3,.m4a,.ogg,audio/*"
                 onChange={(event) => {
                   setFile(event.target.files?.[0] || null);
                   setError("");
                   setResult(null);
-                }} />
-              <div className="upload-icon"><FileAudio size={27} /></div>
-              <strong>{file ? file.name : "Choose a call recording"}</strong>
-              <span>{file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : "Click here to browse files on your computer"}</span>
+                }}
+              />
+
+              <div className="upload-icon">
+                <FileAudio size={27} />
+              </div>
+
+              <strong>
+                {file ? file.name : "Choose a call recording"}
+              </strong>
+
+              <span>
+                {file
+                  ? `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+                  : "Click here to browse files on your computer"}
+              </span>
             </label>
-            <button className="analyze-button" type="submit" disabled={loading}>
-              {loading ? <><LoaderCircle className="spin" size={18} />Analyzing call...</> : <><Activity size={18} />Analyze call</>}
+
+            <button
+              className="analyze-button"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <LoaderCircle className="spin" size={18} />
+                  Analyzing call...
+                </>
+              ) : (
+                <>
+                  <Activity size={18} />
+                  Analyze call
+                </>
+              )}
             </button>
           </form>
-          {error && <div className="error-message"><AlertCircle size={18} />{error}</div>}
+
+          {error && (
+            <div className="error-message">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
         </section>
 
-        {loading && <div className="loading-note">Transcribing the recording and generating AI insights. This may take a little while.</div>}
+        {loading && (
+          <div className="loading-note">
+            Transcribing the recording and generating AI insights.
+            This may take a little while.
+          </div>
+        )}
 
         {result && analysis && (
           <section className="results-section">
             <div className="results-title">
-              <div><div className="eyebrow">ANALYSIS REPORT</div><h2>Call insights</h2><p>Results for {result.filename}</p></div>
-              <div className="success-badge"><CheckCircle2 size={16} />Analysis complete</div>
+              <div>
+                <div className="eyebrow">ANALYSIS REPORT</div>
+                <h2>Call insights</h2>
+                <p>Results for {result.filename}</p>
+              </div>
+
+              <div className="success-badge">
+                <CheckCircle2 size={16} />
+                Analysis complete
+              </div>
             </div>
+
             <div className="insight-grid">
               <article className="insight-card summary-card">
-                <div className="card-icon purple"><MessageSquareText size={20} /></div>
-                <div className="eyebrow">CALL SUMMARY</div><p>{analysis.summary}</p>
+                <div className="card-icon purple">
+                  <MessageSquareText size={20} />
+                </div>
+                <div className="eyebrow">CALL SUMMARY</div>
+                <p>{analysis.summary}</p>
               </article>
+
               <article className="insight-card">
-                <div className="card-icon orange"><Activity size={20} /></div>
+                <div className="card-icon orange">
+                  <Activity size={20} />
+                </div>
                 <div className="eyebrow">CUSTOMER SENTIMENT</div>
-                <div className={`sentiment ${analysis.sentiment?.toLowerCase()}`}>{analysis.sentiment}</div>
+                <div
+                  className={`sentiment ${analysis.sentiment?.toLowerCase()}`}
+                >
+                  {analysis.sentiment}
+                </div>
               </article>
+
               <article className="insight-card">
-                <div className="card-icon blue"><Target size={20} /></div>
-                <div className="eyebrow">CUSTOMER INTENT</div><p>{analysis.customer_intent}</p>
+                <div className="card-icon blue">
+                  <Target size={20} />
+                </div>
+                <div className="eyebrow">CUSTOMER INTENT</div>
+                <p>{analysis.customer_intent}</p>
               </article>
+
               <article className="insight-card">
-                <div className="card-icon green"><ListChecks size={20} /></div>
+                <div className="card-icon green">
+                  <ListChecks size={20} />
+                </div>
                 <div className="eyebrow">KEY ISSUES</div>
-                {analysis.key_issues?.length ? <ul>{analysis.key_issues.map((issue, index) => <li key={index}>{issue}</li>)}</ul> : <p>No key issues identified.</p>}
+
+                {analysis.key_issues?.length ? (
+                  <ul>
+                    {analysis.key_issues.map((issue, index) => (
+                      <li key={index}>{issue}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No key issues identified.</p>
+                )}
               </article>
             </div>
+
             <article className="transcript-card">
               <div className="section-heading">
-                <div className="heading-icon"><MessageSquareText size={19} /></div>
-                <div><h3>Conversation</h3><p>Speaker-labelled segments from the call recording</p></div>
+                <div className="heading-icon">
+                  <MessageSquareText size={19} />
+                </div>
+                <div>
+                  <h3>Conversation</h3>
+                  <p>
+                    Agent and customer conversation with timestamps
+                  </p>
+                </div>
               </div>
+
               {conversation.length ? (
                 <div className="conversation">
                   {conversation.map((segment, index) => {
-                    const speaker = segment.speaker || "UNKNOWN";
-                    const alignment = speakerAlignment(speaker);
+                    const role = segment.speaker_role || "Unknown";
+                    const alignment = speakerAlignment(role);
+
                     return (
                       <div
                         key={`${segment.start}-${segment.end}-${index}`}
                         className={`conversation-segment align-${alignment}`}
                       >
                         <div className="conversation-meta">
-                          <span className="conversation-speaker">{speaker}</span>
+                          <span className="conversation-speaker">
+                            {role === "Agent" ? (
+                              <>
+                                <Headset size={13} />
+                                Agent
+                              </>
+                            ) : role === "Customer" ? (
+                              <>
+                                <UserRound size={13} />
+                                Customer
+                              </>
+                            ) : (
+                              role
+                            )}
+                          </span>
+
                           <span className="conversation-time">
-                            {formatTimestamp(segment.start)} – {formatTimestamp(segment.end)}
+                            {formatTimestamp(segment.start)} –{" "}
+                            {formatTimestamp(segment.end)}
                           </span>
                         </div>
-                        <p className="conversation-text">{segment.text}</p>
+
+                        <p className="conversation-text">
+                          {segment.text}
+                        </p>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="transcript-text">No conversation segments were returned.</p>
+                <p className="transcript-text">
+                  No conversation segments were returned.
+                </p>
               )}
             </article>
           </section>
         )}
-        <footer>CallSense AI · AI-assisted call quality analysis</footer>
+
+        <footer>
+          CallSense AI · AI-assisted call quality analysis
+        </footer>
       </main>
     </div>
   );
