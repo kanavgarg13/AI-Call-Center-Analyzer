@@ -16,6 +16,19 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
+function formatTimestamp(seconds) {
+  const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function speakerAlignment(speaker) {
+  if (speaker === "SPEAKER_00") return "left";
+  if (speaker === "SPEAKER_01") return "right";
+  return "neutral";
+}
+
 function App() {
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
@@ -52,6 +65,7 @@ function App() {
   }
 
   const analysis = result?.analysis;
+  const conversation = Array.isArray(result?.conversation) ? result.conversation : [];
 
   return (
     <div className="app-shell">
@@ -135,9 +149,32 @@ function App() {
             <article className="transcript-card">
               <div className="section-heading">
                 <div className="heading-icon"><MessageSquareText size={19} /></div>
-                <div><h3>Full transcript</h3><p>Text generated from the call recording</p></div>
+                <div><h3>Conversation</h3><p>Speaker-labelled segments from the call recording</p></div>
               </div>
-              <p className="transcript-text">{result.transcript}</p>
+              {conversation.length ? (
+                <div className="conversation">
+                  {conversation.map((segment, index) => {
+                    const speaker = segment.speaker || "UNKNOWN";
+                    const alignment = speakerAlignment(speaker);
+                    return (
+                      <div
+                        key={`${segment.start}-${segment.end}-${index}`}
+                        className={`conversation-segment align-${alignment}`}
+                      >
+                        <div className="conversation-meta">
+                          <span className="conversation-speaker">{speaker}</span>
+                          <span className="conversation-time">
+                            {formatTimestamp(segment.start)} – {formatTimestamp(segment.end)}
+                          </span>
+                        </div>
+                        <p className="conversation-text">{segment.text}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="transcript-text">No conversation segments were returned.</p>
+              )}
             </article>
           </section>
         )}

@@ -6,3 +6,9 @@ backend/uploads/
 node_modules/
 dist/
 .DS_Store
+# V2 Python environment
+.venv-whisperx/
+
+# Local audio test recordings
+Agent_Thanks for cal.mp3
+Sample_test_for_ai_sense.mp3

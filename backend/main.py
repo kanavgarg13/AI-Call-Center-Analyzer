@@ -1,4 +1,5 @@
 
+import logging
 import shutil
 import uuid
 from pathlib import Path
@@ -6,8 +7,10 @@ from pathlib import Path
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from transcription import transcribe_audio
-from analysis import analyze_transcript
+from backend.analysis import analyze_transcript
+from backend.conversation import process_conversation
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -16,6 +19,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
         "https://ai-call-center-analyzer.vercel.app",
     ],
     allow_credentials=True,
@@ -59,22 +63,30 @@ def analyze_audio(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, saved_file)
 
         try:
-            transcript = transcribe_audio(str(temp_path))
+            conversation = process_conversation(str(temp_path))
         except Exception:
+            logger.exception("Conversation processing failed for '%s'", filename)
             raise HTTPException(
                 status_code=500,
-                detail="Transcription failed. Please try again with a valid audio file.",
+                detail="Conversation processing failed. Please try again with a valid audio file.",
             )
 
-        if not transcript.strip():
+        if not conversation:
             raise HTTPException(
                 status_code=422,
                 detail="No speech was detected in the audio file.",
             )
 
+        transcript = "\n".join(
+            f"[{segment['start']:.2f}s - {segment['end']:.2f}s] "
+            f"{segment['speaker']}: {segment['text']}"
+            for segment in conversation
+        )
+
         try:
             analysis = analyze_transcript(transcript)
         except Exception:
+            logger.exception("Call analysis failed for '%s'", filename)
             raise HTTPException(
                 status_code=502,
                 detail="Call analysis failed. Please try again later.",
@@ -82,6 +94,7 @@ def analyze_audio(file: UploadFile = File(...)):
 
         return {
             "filename": filename,
+            "conversation": conversation,
             "transcript": transcript,
             "analysis": analysis,
             "message": "Audio transcribed and analyzed successfully",
